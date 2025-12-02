@@ -22,7 +22,7 @@
 
         <!-- Stats Cards -->
         <div class="row mb-4">
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
                 <div class="card bg-primary text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -37,13 +37,28 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="card-title">{{ pending_tasks }}</h4>
+                                <p class="card-text">Pending Tasks</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-clock fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
                 <div class="card bg-success text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="card-title">{{ tasks|length }}</h4>
-                                <p class="card-text">Active Tasks</p>
+                                <h4 class="card-title">{{ completed_tasks }}</h4>
+                                <p class="card-text">Completed Tasks</p>
                             </div>
                             <div class="align-self-center">
                                 <i class="bi bi-check-circle fa-2x"></i>
@@ -52,7 +67,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
                 <div class="card bg-info text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -119,7 +134,12 @@
                                             {{ task.title|truncatechars:30 }}
                                         </a>
                                     </h5>
-                                    <span class="badge bg-primary">{{ forloop.counter }}</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary">{{ forloop.counter }}</span>
+                                        <span class="badge {% if task.status == 'completed' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                            {{ task.get_status_display }}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <!-- Task Details -->

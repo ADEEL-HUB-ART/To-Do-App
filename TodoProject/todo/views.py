@@ -91,8 +91,17 @@ class HomeView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            user_tasks = Task.objects.filter(user=self.request.user)
+            context['total_tasks'] = user_tasks.count()
+            context['pending_tasks'] = user_tasks.filter(status='pending').count()
+            context['completed_tasks'] = user_tasks.filter(status='completed').count()
+        else:
+            context['total_tasks'] = 0
+            context['pending_tasks'] = 0
+            context['completed_tasks'] = 0
+        
         context['query'] = self.request.GET.get('q', '')
-        context['total_tasks'] = self.get_queryset().count()
         return context
 
 

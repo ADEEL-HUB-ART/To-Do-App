@@ -61,7 +61,7 @@ class SignUpForm(UserCreationForm):
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'time_required', 'assigned_to', 'due_time']
+        fields = ['title', 'time_required', 'assigned_to', 'due_time', 'status']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -80,6 +80,9 @@ class TaskForm(forms.ModelForm):
                 'type': 'datetime-local',
                 'class': 'form-control'
             }),
+            'status': forms.Select(attrs={
+                'class': 'form-select'
+            }),
         }
 
     def __init__(self, *args, **kwargs):
@@ -88,3 +91,4 @@ class TaskForm(forms.ModelForm):
         self.fields['time_required'].required = False
         self.fields['assigned_to'].required = False
         self.fields['due_time'].required = False
+        self.fields['status'].required = True
