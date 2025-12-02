@@ -1,0 +1,30 @@
+/* static/todo/styles.css */
+
+body {
+    background-color: #121212;
+    color: #f1f1f1;
+}
+
+a {
+    color: #6ea8fe;
+}
+
+a:hover {
+    color: #9ec5fe;
+}
+
+.list-group-item {
+    background-color: #1e1e1e;
+    border-color: #333;
+    border-radius: 10px;
+}
+
+.btn-outline-warning, .btn-outline-danger {
+    color: #f1f1f1;
+    background-color: transparent;
+}
+
+.btn-outline-warning:hover, .btn-outline-danger:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}

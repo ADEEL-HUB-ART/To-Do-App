@@ -1,0 +1,35 @@
+{% extends 'todo/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">{{ task.title }}</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Assigned To:</strong> {{ task.assigned_to }}</p>
+            <p><strong>Time Required:</strong> {{ task.time_required }}</p>
+             <p><strong>Assigned By:</strong> {{ task.user.username }}</p>
+            <p><strong>Due Time:</strong> {{ task.due_time|date:"M d, Y - h:i A" }}</p>
+
+            <!-- Status: Dynamic based on due_time -->
+            <p><strong>Status:</strong>
+                {% if task.due_time %}
+                    {% if task.is_overdue %}
+                        <span class="badge bg-success">Completed</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    {% endif %}
+                {% else %}
+                    <span class="badge bg-secondary">No due time</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
