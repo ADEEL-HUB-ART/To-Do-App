@@ -92,17 +92,34 @@ class HomeView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
+            # Update overdue tasks before calculating stats
+            self.update_overdue_tasks()
+            
             user_tasks = Task.objects.filter(user=self.request.user)
             context['total_tasks'] = user_tasks.count()
             context['pending_tasks'] = user_tasks.filter(status='pending').count()
             context['completed_tasks'] = user_tasks.filter(status='completed').count()
+            context['overdue_tasks'] = user_tasks.filter(status='overdue').count()
         else:
             context['total_tasks'] = 0
             context['pending_tasks'] = 0
             context['completed_tasks'] = 0
+            context['overdue_tasks'] = 0
         
         context['query'] = self.request.GET.get('q', '')
         return context
+
+    def update_overdue_tasks(self):
+        """Update tasks that are now overdue"""
+        if self.request.user.is_authenticated:
+            overdue_tasks = Task.objects.filter(
+                user=self.request.user,
+                status='pending',
+                due_time__isnull=False
+            )
+            
+            for task in overdue_tasks:
+                task.update_status_if_overdue()
 
 
 class TaskCreateView(LoginRequiredMixin, CreateView):

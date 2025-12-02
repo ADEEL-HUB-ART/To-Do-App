@@ -61,7 +61,7 @@ class SignUpForm(UserCreationForm):
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'time_required', 'assigned_to', 'due_time', 'status']
+        fields = ['title', 'time_required', 'assigned_to', 'due_time', 'overtime_hours', 'overtime_minutes', 'status']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -80,6 +80,18 @@ class TaskForm(forms.ModelForm):
                 'type': 'datetime-local',
                 'class': 'form-control'
             }),
+            'overtime_hours': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'max': '24',
+                'placeholder': '0'
+            }),
+            'overtime_minutes': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'max': '59',
+                'placeholder': '0'
+            }),
             'status': forms.Select(attrs={
                 'class': 'form-select'
             }),
@@ -91,4 +103,6 @@ class TaskForm(forms.ModelForm):
         self.fields['time_required'].required = False
         self.fields['assigned_to'].required = False
         self.fields['due_time'].required = False
+        self.fields['overtime_hours'].required = False
+        self.fields['overtime_minutes'].required = False
         self.fields['status'].required = True

@@ -68,15 +68,15 @@
                 </div>
             </div>
             <div class="col-md-3 mb-3">
-                <div class="card bg-info text-white">
+                <div class="card bg-danger text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="card-title">Today</h4>
-                                <p class="card-text">Due Tasks</p>
+                                <h4 class="card-title">{{ overdue_tasks }}</h4>
+                                <p class="card-text">Overdue Tasks</p>
                             </div>
                             <div class="align-self-center">
-                                <i class="bi bi-calendar-event fa-2x"></i>
+                                <i class="bi bi-exclamation-triangle fa-2x"></i>
                             </div>
                         </div>
                     </div>
@@ -136,7 +136,7 @@
                                     </h5>
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="badge bg-primary">{{ forloop.counter }}</span>
-                                        <span class="badge {% if task.status == 'completed' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                        <span class="badge {% if task.status == 'completed' %}bg-success{% elif task.status == 'overdue' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
                                             {{ task.get_status_display }}
                                         </span>
                                     </div>
@@ -158,8 +158,18 @@
                                     
                                     {% if task.due_time %}
                                         <p class="text-muted mb-1">
-                                            <i class="bi bi-calendar me-2"></i>{{ task.due_time|date:"M d, Y g:i A" }}
+                                            <i class="bi bi-calendar me-2"></i>Due: {{ task.due_time|date:"M d, Y g:i A" }}
+                                            {% if task.overtime_hours or task.overtime_minutes %}
+                                                <span class="badge bg-info ms-2">
+                                                    +{{ task.overtime_hours }}h {{ task.overtime_minutes }}m overtime
+                                                </span>
+                                            {% endif %}
                                         </p>
+                                        {% if task.effective_due_time %}
+                                            <p class="text-muted mb-1">
+                                                <i class="bi bi-clock-history me-2"></i>Effective Due: {{ task.effective_due_time|date:"M d, Y g:i A" }}
+                                            </p>
+                                        {% endif %}
                                     {% endif %}
                                     
                                     <p class="text-muted small mb-0">

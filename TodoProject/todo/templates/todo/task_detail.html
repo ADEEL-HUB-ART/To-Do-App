@@ -1,35 +1,145 @@
 {% extends 'todo/base.html' %}
-{% load static %}
+
+{% block title %}Task Details - TaskMaster Pro{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">{{ task.title }}</h4>
-        </div>
-        <div class="card-body">
-            <p><strong>Assigned To:</strong> {{ task.assigned_to }}</p>
-            <p><strong>Time Required:</strong> {{ task.time_required }}</p>
-             <p><strong>Assigned By:</strong> {{ task.user.username }}</p>
-            <p><strong>Due Time:</strong> {{ task.due_time|date:"M d, Y - h:i A" }}</p>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Task Details
+                    </h4>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong class="text-muted">Task Name:</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            <h5 class="text-dark">{{ task.title }}</h5>
+                        </div>
+                    </div>
 
-            <!-- Status: Dynamic based on due_time -->
-            <p><strong>Status:</strong>
-                {% if task.due_time %}
-                    {% if task.is_overdue %}
-                        <span class="badge bg-success">Completed</span>
-                    {% else %}
-                        <span class="badge bg-warning text-dark">Pending</span>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong class="text-muted">Status:</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            <span class="badge {% if task.status == 'completed' %}bg-success{% elif task.status == 'overdue' %}bg-danger{% else %}bg-warning text-dark{% endif %} fs-6">
+                                {{ task.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if task.time_required %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong class="text-muted">Time Required:</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            <i class="bi bi-clock me-2 text-muted"></i>{{ task.time_required }}
+                        </div>
+                    </div>
                     {% endif %}
-                {% else %}
-                    <span class="badge bg-secondary">No due time</span>
-                {% endif %}
-            </p>
+
+                    {% if task.assigned_to %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong class="text-muted">Assigned To:</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            <i class="bi bi-person me-2 text-muted"></i>{{ task.assigned_to }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong class="text-muted">Created By:</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            <i class="bi bi-user-plus me-2 text-muted"></i>{{ task.user.username }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong class="text-muted">Created At:</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            <i class="bi bi-calendar me-2 text-muted"></i>{{ task.created|date:"F d, Y g:i A" }}
+                        </div>
+                    </div>
+
+                    {% if task.due_time %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong class="text-muted">Due Time:</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            <i class="bi bi-calendar-event me-2 text-muted"></i>{{ task.due_time|date:"F d, Y g:i A" }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if task.overtime_hours or task.overtime_minutes %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong class="text-muted">Overtime:</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            <span class="badge bg-info">
+                                <i class="bi bi-clock-history me-1"></i>
+                                +{{ task.overtime_hours }}h {{ task.overtime_minutes }}m
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if task.effective_due_time and task.due_time %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong class="text-muted">Effective Due:</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            <i class="bi bi-clock-history me-2 text-muted"></i>{{ task.effective_due_time|date:"F d, Y g:i A" }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if task.updated %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong class="text-muted">Last Updated:</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            <i class="bi bi-arrow-clockwise me-2 text-muted"></i>{{ task.updated|date:"F d, Y g:i A" }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'home' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                        <div>
+                            <a href="{% url 'update_task' task.id %}" class="btn btn-warning me-2">
+                                <i class="bi bi-pencil me-2"></i>Edit Task
+                            </a>
+                            <a href="{% url 'delete_task' task.id %}" class="btn btn-danger"
+                               onclick="return confirm('Are you sure you want to delete this task?')">
+                                <i class="bi bi-trash me-2"></i>Delete Task
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
-
-
-
-
