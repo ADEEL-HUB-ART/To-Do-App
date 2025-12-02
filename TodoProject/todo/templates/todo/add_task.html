@@ -1,13 +1,168 @@
 {% extends 'todo/base.html' %}
 
+{% block title %}Add Task - TaskMaster Pro{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <h2>Add New Task</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-success">Create Task</button>
-        <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
-    </form>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-dark">
+                    <i class="bi bi-plus-circle me-2 text-success"></i>Create New Task
+                </h2>
+                <p class="text-muted">Add a new task to your workflow</p>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card shadow-lg">
+                <div class="card-header bg-gradient text-white text-center py-3" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <h4 class="mb-0">
+                        <i class="bi bi-clipboard-plus me-2"></i>Task Details
+                    </h4>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Task Title -->
+                        <div class="mb-4">
+                            <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-card-text me-2 text-primary"></i>Task Title *
+                            </label>
+                            {{ form.title }}
+                            <div class="form-text">Give your task a clear, descriptive title</div>
+                        </div>
+
+                        <!-- Time Required -->
+                        <div class="mb-4">
+                            <label for="{{ form.time_required.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-clock me-2 text-info"></i>Time Required
+                            </label>
+                            {{ form.time_required }}
+                            <div class="form-text">Estimate how long this task will take (e.g., "2 hours", "30 minutes")</div>
+                        </div>
+
+                        <!-- Assigned To -->
+                        <div class="mb-4">
+                            <label for="{{ form.assigned_to.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-person me-2 text-warning"></i>Assign To
+                            </label>
+                            {{ form.assigned_to }}
+                            <div class="form-text">Who is responsible for this task? (Optional)</div>
+                        </div>
+
+                        <!-- Due Date/Time -->
+                        <div class="mb-4">
+                            <label for="{{ form.due_time.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-calendar-event me-2 text-danger"></i>Due Date & Time
+                            </label>
+                            {{ form.due_time }}
+                            <div class="form-text">When should this task be completed? (Optional)</div>
+                        </div>
+
+                        <!-- Form Errors -->
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>Please correct the following errors:</strong>
+                                <ul class="mb-0 mt-2">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-3 justify-content-end">
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg px-4">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-gradient-success btn-lg px-4">
+                                <i class="bi bi-check-circle me-2"></i>Create Task
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="card mt-4 border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="fw-bold text-primary mb-3">
+                        <i class="bi bi-lightbulb me-2"></i>Pro Tips
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="bi bi-check2 me-2 text-success"></i>
+                            Use clear, action-oriented titles (e.g., "Review quarterly report")
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check2 me-2 text-success"></i>
+                            Be realistic with time estimates to improve planning
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi bi-check2 me-2 text-success"></i>
+                            Set due dates to stay on track with deadlines
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const title = document.getElementById('{{ form.title.id_for_label }}').value.trim();
+        
+        if (!title) {
+            e.preventDefault();
+            alert('Please enter a task title.');
+            document.getElementById('{{ form.title.id_for_label }}').focus();
+            return false;
+        }
+    });
+
+    // Auto-resize and focus on title field
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleField = document.getElementById('{{ form.title.id_for_label }}');
+        titleField.focus();
+        
+        // Add character counter for title
+        const titleLabel = titleField.previousElementSibling;
+        const counter = document.createElement('span');
+        counter.className = 'text-muted small float-end';
+        titleLabel.appendChild(counter);
+        
+        function updateCounter() {
+            const remaining = 255 - titleField.value.length;
+            counter.textContent = `${remaining} characters remaining`;
+            counter.className = remaining < 20 ? 'text-danger small float-end' : 'text-muted small float-end';
+        }
+        
+        titleField.addEventListener('input', updateCounter);
+        updateCounter();
+    });
+
+    // Set minimum date for due_time to today
+    const dueDateField = document.getElementById('{{ form.due_time.id_for_label }}');
+    if (dueDateField) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        dueDateField.min = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+</script>
 {% endblock %}

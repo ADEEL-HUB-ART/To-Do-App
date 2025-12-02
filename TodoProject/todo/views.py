@@ -2,109 +2,160 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.views import View
+from django.urls import reverse_lazy
+from django.db.models import Q
 from .models import Task
 from .forms import SignUpForm, TaskForm
 
-# Sign up View
 
-def signup_view(request):
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
+class SignUpView(View):
+    """User registration view"""
+    template_name = 'todo/signup.html'
+    form_class = SignUpForm
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('home')
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = self.form_class(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Account created! You can now log in.")
+            user = form.save()
+            messages.success(request, "Account created successfully! You can now log in.")
             return redirect('login')
-    else:
-        form = SignUpForm()
-    return render(request, 'todo/signup.html', {'form': form})
+        return render(request, self.template_name, {'form': form})
 
-# Login View
 
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
+class LoginView(View):
+    """User login view"""
+    template_name = 'todo/login.html'
 
-        if user:
-            login(request, user)
-            messages.success(request, "Logged in successfully .")
+    def get(self, request):
+        if request.user.is_authenticated:
             return redirect('home')
+        return render(request, self.template_name)
+
+    def post(self, request):
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        if username and password:
+            user = authenticate(request, username=username, password=password)
+            if user:
+                login(request, user)
+                messages.success(request, f"Welcome back, {user.username}!")
+                return redirect('home')
+            else:
+                messages.error(request, "Invalid username or password.")
         else:
-            messages.error(request, "Invalid username or password.")
-    return render(request, 'todo/login.html')
-
-# Logout View
-
-def logout_view(request):
-    logout(request)
-    messages.info(request, "Logged out successfully.")
-    return redirect('home')
-
-# Home Page
-
-# def home(request):
-#     tasks = Task.objects.all()
-#     return render(request, 'todo/home.html', {'tasks': tasks})
-
-@login_required
-def home(request):
-    query = request.GET.get('q')
-    tasks = Task.objects.filter(user=request.user)
-
-    if query:
-        tasks = tasks.filter(title__icontains=query)
-
-    return render(request, 'todo/home.html', {'tasks': tasks, 'query': query})
+            messages.error(request, "Please fill in all fields.")
+        
+        return render(request, self.template_name)
 
 
-
-@login_required
-def add_task_view(request):
-    if request.method == 'POST':
-        form = TaskForm(request.POST)
-        if form.is_valid():
-            task = form.save(commit=False)
-            task.user = request.user
-            task.save()
-            messages.success(request, "Task added successfully!")
-            return redirect('home')
-    else:
-        form = TaskForm()
-    return render(request, 'todo/add_task.html', {'form': form})
-
-@login_required
-def delete_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    task.delete()
-    messages.success(request, "Task deleted.")
-    return redirect('home')
+class LogoutView(View):
+    """User logout view"""
+    def get(self, request):
+        if request.user.is_authenticated:
+            logout(request)
+            messages.info(request, "You have been logged out successfully.")
+        return redirect('home')
 
 
+class HomeView(ListView):
+    """Home page with task list and search"""
+    model = Task
+    template_name = 'todo/home.html'
+    context_object_name = 'tasks'
+    paginate_by = 10
 
-@login_required
-def task_detail(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    return render(request, 'todo/task_detail.html', {'task': task})
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return Task.objects.none()
+        
+        queryset = Task.objects.filter(user=self.request.user).order_by('-created')
+        query = self.request.GET.get('q')
+        
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query) | 
+                Q(assigned_to__icontains=query)
+            )
+        
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        context['total_tasks'] = self.get_queryset().count()
+        return context
 
 
-@login_required
-def update_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
+class TaskCreateView(LoginRequiredMixin, CreateView):
+    """Create new task"""
+    model = Task
+    form_class = TaskForm
+    template_name = 'todo/add_task.html'
+    success_url = reverse_lazy('home')
 
-    # if task.user != request.user:
-    #     messages.error(request, "You do not have permission to edit this task.")
-    #     return redirect('home')
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        messages.success(self.request, "Task created successfully!")
+        return super().form_valid(form)
 
-    if request.method == 'POST':
-        form = TaskForm(request.POST, instance=task)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Task updated successfully!")
-            return redirect('task_detail', task_id=task.id)
-    else:
-        form = TaskForm(instance=task)
-
-    return render(request, 'todo/update_task.html', {'form': form, 'task': task})
+    def form_invalid(self, form):
+        messages.error(self.request, "Please correct the errors below.")
+        return super().form_invalid(form)
 
 
+class TaskDetailView(LoginRequiredMixin, DetailView):
+    """Task detail view"""
+    model = Task
+    template_name = 'todo/task_detail.html'
+    context_object_name = 'task'
+    pk_url_kwarg = 'task_id'
+
+    def get_queryset(self):
+        return Task.objects.filter(user=self.request.user)
+
+
+class TaskUpdateView(LoginRequiredMixin, UpdateView):
+    """Update existing task"""
+    model = Task
+    form_class = TaskForm
+    template_name = 'todo/update_task.html'
+    pk_url_kwarg = 'task_id'
+
+    def get_queryset(self):
+        return Task.objects.filter(user=self.request.user)
+
+    def get_success_url(self):
+        return reverse_lazy('task_detail', kwargs={'task_id': self.object.pk})
+
+    def form_valid(self, form):
+        messages.success(self.request, "Task updated successfully!")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Please correct the errors below.")
+        return super().form_invalid(form)
+
+
+class TaskDeleteView(LoginRequiredMixin, DeleteView):
+    """Delete task"""
+    model = Task
+    template_name = 'todo/delete_task.html'
+    success_url = reverse_lazy('home')
+    pk_url_kwarg = 'task_id'
+
+    def get_queryset(self):
+        return Task.objects.filter(user=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Task deleted successfully!")
+        return super().delete(request, *args, **kwargs)

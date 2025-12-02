@@ -1,14 +1,135 @@
 {% extends 'todo/base.html' %}
+
+{% block title %}Sign Up - TaskMaster Pro{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-4">
-    <h2 class="mb-3">Sign Up</h2>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button class="btn btn-success w-100 mt-2">Create Account</button>
-    </form>
-    <p class="mt-3 text-center">Already have an account? <a href="{% url 'login' %}">Login</a></p>
-  </div>
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100 py-5">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="fas fa-user-plus fa-4x text-primary"></i>
+                        </div>
+                        <h2 class="fw-bold text-dark mb-2">Create Your Account</h2>
+                        <p class="text-muted">Join TaskMaster Pro and organize your life</p>
+                    </div>
+
+                    <!-- Form Errors -->
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Please correct the following errors:</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Registration Form -->
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-person me-2"></i>Username
+                            </label>
+                            {{ form.username }}
+                            {% if form.username.help_text %}
+                                <div class="form-text">{{ form.username.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Name Fields -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="bi bi-person-badge me-2"></i>First Name
+                                </label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="bi bi-person-badge me-2"></i>Last Name
+                                </label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-envelope me-2"></i>Email Address
+                            </label>
+                            {{ form.email }}
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-lock me-2"></i>Password
+                            </label>
+                            {{ form.password1 }}
+                            {% if form.password1.help_text %}
+                                <div class="form-text">{{ form.password1.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="mb-4">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-lock-fill me-2"></i>Confirm Password
+                            </label>
+                            {{ form.password2 }}
+                            {% if form.password2.help_text %}
+                                <div class="form-text">{{ form.password2.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-gradient-primary btn-lg py-3">
+                                <i class="bi bi-person-plus me-2"></i>Create Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Login Link -->
+                    <div class="text-center">
+                        <p class="mb-0 text-muted">
+                            Already have an account? 
+                            <a href="{% url 'login' %}" class="text-decoration-none fw-bold">
+                                Sign In <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add floating label effect
+    document.querySelectorAll('.form-control').forEach(function(input) {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            if (this.value === '') {
+                this.parentElement.classList.remove('focused');
+            }
+        });
+    });
+</script>
 {% endblock %}
